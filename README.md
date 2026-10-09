@@ -15,10 +15,10 @@ Port 3000, variable `PORT` pour changer. `npm run dev` redémarre le serveur apr
 
 ## Jeux
 
-- **Billard arcade à 9 billes** : physique avec impulsion, collisions, friction, bandes, six poches et faute de la blanche. Maintenir pour doser puis relâcher pour frapper dans la direction visée. Une bille empochée rapporte un point et conserve le tour ; sinon le tour change. La blanche revient à une position libre après une faute. En solo, vider la table en le moins de coups possible. Il s’agit de règles arcade, pas des règles officielles du 9-ball.
-- **Fléchettes 301** : score exact à atteindre, trois tirs par volée, dépassement annulant la volée, dix volées maximum par joueur. La barre verte stabilise la visée au relâchement. En multijoueur, le premier à zéro gagne ; au bout des dix volées, le score restant le plus bas gagne, ou égalité. Sortie simple, pas de double obligatoire.
-- **Air hockey** : maillets mobiles en 2D, collisions selon la vitesse du maillet, buts dans les ouvertures latérales, murs et friction. Premier à 7, robot en solo.
-- **Ping-pong arcade** : raquettes verticales, angle selon le point de contact, accélération plafonnée, compteur d’échanges et robot en solo. Premier à 7 ; vue arcade de dessus, pas une simulation 3D de tennis de table.
+- **Billard 9-ball** : rack en losange avec la 1 devant et la 9 au centre. Premier contact sur la plus petite bille, puis au moins une bande ou une bille empochée. Empocher légalement la 9 gagne la partie ; la 9 empochée sur faute est replacée. Faute = blanche en main, à placer avec un clic dans une zone libre. Puissance dosée, rétro/coulé et effet latéral simplifiés, décélération de roulement, collisions, mâchoires de poches et animation d’empochage. Guide de visée jusqu’au premier contact. Les règles particulières de casse, le push-out et les coups sautés ne sont pas implémentés.
+- **Fléchettes 301** : secteurs dans l’ordre standard, anneaux aux proportions réglementaires, bull 25/50, trois fléchettes par volée, animation de vol et interdiction de relancer avant l’impact. Double final par défaut (bull 50 valable) ; laisser 1, dépasser zéro ou atteindre zéro sans double annule la volée. Une option permet la sortie libre. Dix volées maximum par joueur ; au terme du défi, le score restant le plus bas gagne. Visée légèrement mobile et stabilisation au maintien.
+- **Air hockey** : mouvement 2D avec accélération et vitesse limitées, collision selon la vitesse du maillet, restitution et faible friction du palet. Poteaux physiques, validation du passage complet dans le but, remise en jeu après un point. Un palet bloqué contre une paroi ou entre les deux maillets arrête les maillets au contact. Premier à 7, robot en solo.
+- **Ping-pong arcade** : raquettes verticales, angle selon le point de contact, accélération plafonnée, compteur d’échanges et robot en solo. Premier à 7 ; vue arcade de dessus.
 - **Snake** : directions mises en file, clavier, balayage ou boutons tactiles, vitesse progressive, fruits, collisions avec murs et corps.
 - **Casse-briques** : service manuel, trois niveaux, briques renforcées, combos, trois vies, bonus raquette large et balle lente. Souris, doigt ou clavier.
 - **Memory** : aperçu initial, cartes à retourner, huit paires, nombre d’essais, durée et séries de bonnes réponses.
@@ -27,11 +27,11 @@ Port 3000, variable `PORT` pour changer. `npm run dev` redémarre le serveur apr
 
 Pause solo (bouton ou P), pause automatique au changement d’onglet, relance, plein écran si le navigateur le permet, sons synthétisés facultatifs. Les flèches servent aussi au multijoueur. Espace maintenu/relâché permet de charger et tirer au billard et aux fléchettes ; Espace sert la balle au casse-briques. Les niveaux de difficulté changent la visée des fléchettes, la vitesse de Snake et celle du robot.
 
-Records solo conservés sur cet appareil par jeu et difficulté (`localStorage`), distincts des victoires multijoueurs. Les anciens records du premier prototype ne sont pas réutilisés car les règles ont changé.
+Records solo conservés sur cet appareil par jeu et difficulté (`localStorage`), distincts des victoires multijoueurs. Les records de versions antérieures ne sont pas réutilisés pour ces nouvelles règles.
 
 ## Architecture et limites
 
-`public/solo.js` contient le moteur partagé, utilisé dans le navigateur en solo et sur le serveur en multijoueur. `public/renderer.js` dessine les terrains. Le serveur contrôle la physique, les tours et les scores multijoueurs ; les clients envoient leurs mouvements et leurs tirs.
+`public/solo.js` contient le moteur partagé, utilisé dans le navigateur en solo et sur le serveur en multijoueur. `public/renderer.js` dessine les terrains. La physique utilise un pas fixe de 1/120 seconde, indépendamment de la fréquence d’affichage. Le serveur contrôle les tours et les scores multijoueurs ; les clients envoient mouvements, effets, placements et tirs. `public/network.js` interpole les positions entre les états reçus avec un tampon de 65 ms et réinitialise le tampon lors des buts et des nouvelles manches. Les décors de billard, hockey et fléchettes sont mis en cache pour éviter de les recalculer à chaque image.
 
 Profils invités sans authentification. Amis locaux par pseudo, sans demande réciproque. Présence, salons, messages et classement sont en mémoire et disparaissent au redémarrage. Une seule instance serveur pour ce prototype. Avant ouverture publique à grande échelle : comptes, base de données, modération et protections anti-abus.
 
@@ -43,4 +43,6 @@ Le plan gratuit peut mettre le service en veille ; premier chargement plus lent 
 
 ## Validation
 
-Tests de règles : 301/bust, collisions et poches de billard, faute, alternance des tours, angles de raquette, buts de hockey, Snake, bonus/niveaux/vies de casse-briques, aperçu et paires de Memory, pause. Test WebSocket : deux joueurs, tchat, défi 301 complet et classement. Vérifications Chromium sur les sept jeux, interactions souris/clavier, pause, difficulté, mobile et hockey à deux navigateurs.
+Tests : vol et doubles de fléchettes, bust, rack et premier contact, poches/faute/placement de blanche, remise en place de la 9, victoire, conservation des tours, poteaux et palets coincés de hockey, anti-traversée à haute vitesse. Comparaison de simulations à 30, 60 et 144 FPS et interpolation de paquets irréguliers. Régressions sur les quatre autres jeux et pause. Test WebSocket : deux joueurs, tchat, défi 301 complet avec double final et classement. Vérifications Chromium sur PC, paramètres d’effet, placement, animation de fléchette, contrôles clavier en butée, hockey à deux navigateurs et absence de débordement mobile.
+
+La vérification de fluidité a été répétée dans Chromium avec deux clients et un délai réseau variable de 45 à 90 ms dans chaque sens : médiane et 95e percentile d’intervalle de rendu de 16,7 ms sur cette machine. Les effets de flou de la fenêtre ont été supprimés et le canvas isolé pour limiter le coût de composition. Cette mesure décrit le test local, pas les performances de tous les PC ou du service Render.
