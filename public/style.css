@@ -9,3 +9,26 @@
 #board{contain:paint;transform:translateZ(0)}
 
 #board{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:none}#board.dragging{cursor:grabbing}
+/* Every game opens in a fixed, viewport-sized arena; the lobby keeps its scroll position. */
+html.game-open{overflow:hidden;overscroll-behavior:none;scroll-behavior:auto}
+html.game-open body{position:fixed;top:var(--game-scroll-y,0);left:var(--game-scroll-x,0);width:100%;overflow:hidden;overscroll-behavior:none}
+#game-dialog[open],#game-dialog[open]:fullscreen{position:fixed;inset:0;margin:0;width:100%;max-width:none;height:var(--game-height,100dvh);max-height:none;box-sizing:border-box;border:0;border-radius:0;display:flex;flex-direction:column;align-items:stretch;gap:8px;overflow:hidden;overscroll-behavior:none;padding:max(10px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));background:#10181e}
+#game-dialog[open]>div,#game-dialog[open]:fullscreen>div{width:100%;min-width:0;flex-shrink:0}
+#game-dialog[open] .game-dialog-header{width:100%;gap:10px}
+#game-dialog[open] h2{font-size:24px;margin:0}
+#game-dialog[open] .eyebrow{font-size:8px;line-height:1.2}
+#game-dialog[open] .game-toolbar{margin:0;gap:8px;flex-wrap:nowrap;min-height:32px}
+#game-dialog[open] .game-toolbar #game-feedback{width:auto;min-width:0;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;font-size:11px}
+#game-dialog[open] #match-info{padding:7px 10px;margin:0;font-size:12px;min-height:30px}
+#game-dialog[open] #solo-record{margin:0;font-size:10px}
+#game-dialog[open] #arena-stage{position:relative;display:flex;align-items:center;justify-content:center;flex:1 1 0;min-height:0;overflow:hidden;touch-action:none;background:#0b141c;border-radius:10px}
+#game-dialog[open] #board,#game-dialog[open]:fullscreen #board{display:block;flex:none;max-width:none;max-height:none;aspect-ratio:auto;box-shadow:none;touch-action:none}
+#board[data-rotation="left"]{transform:rotate(-90deg) translateZ(0)}
+#board[data-rotation="right"]{transform:rotate(90deg) translateZ(0)}
+#board[data-rotation="none"]{transform:translateZ(0)}
+#game-dialog[open] #pool-controls,#game-dialog[open] #shot-controls{padding:0;gap:8px}
+#game-dialog[open] #snake-controls{margin:0}
+#game-dialog[open] .game-dialog-footer{margin:0;align-items:center;gap:12px;flex-wrap:nowrap;min-height:24px}
+.game-help{color:#a9b9c5;font-size:11px;min-width:0}.game-help summary{cursor:pointer;padding:5px 0}.game-help p{max-height:75px;overflow:auto;overscroll-behavior:contain;margin:5px 0;line-height:1.5;touch-action:pan-y}
+@media(max-width:600px){#game-dialog[open]{padding:8px;gap:6px}#game-dialog[open] h2{font-size:20px}#game-dialog[open] .game-toolbar .secondary{font-size:10px;padding:8px}#game-dialog[open] #solo-record{display:none}#game-dialog[open] .game-toolbar #game-feedback:empty{display:none}#game-dialog[open] .game-dialog-footer p{margin:0}#game-dialog[open] #pool-target{margin:0;font-size:10px}#game-dialog[open] #pool-controls label{font-size:10px}#game-dialog[open] #pool-controls input{width:65px}}
+@media(max-height:480px){#game-dialog[open]{padding:6px;gap:4px}#game-dialog[open] .game-dialog-header{height:30px}#game-dialog[open] .game-dialog-header .eyebrow{display:none}#game-dialog[open] h2{font-size:17px}#game-dialog[open] .secondary{padding:6px 9px;font-size:10px}#game-dialog[open] .game-toolbar{min-height:26px}#game-dialog[open] #match-info{padding:4px 8px;min-height:24px;font-size:10px}#game-dialog[open] #solo-record{display:none}#game-dialog[open] .game-dialog-footer{min-height:20px}#game-dialog[open] #snake-controls button{min-height:30px}#game-dialog[open] #power-label{font-size:10px}}

@@ -58,3 +58,11 @@ Maintenir le maillet puis glisser : capture du pointeur, conservation du point d
 Une simple perte de focus (clavier virtuel, focus du navigateur) ne déclenche plus une pause. Un véritable masquage d’onglet suspend la partie solo ; elle reprend au retour si la pause était automatique. Une pause manuelle reste active. En multijoueur, les positions restent contrôlées par le serveur : la latence réseau peut toujours retarder légèrement le retour visuel.
 
 Vérification Chromium : événements tactiles natifs via émulation mobile, prise hors centre, changements de direction, relâchement, perte de focus, masquage et retour, pause manuelle, souris sur PC et maillet du joueur droit à deux navigateurs. Aucun test sur un téléphone physique dans cet environnement.
+
+## Fenêtre de jeu agrandie et défilement
+
+Tous les jeux s’ouvrent dans une fenêtre occupant l’écran disponible. Le terrain conserve ses proportions et s’adapte aux rotations et aux changements de taille. Sur téléphone en portrait, le hockey est présenté verticalement, avec le maillet du joueur en bas, y compris pour le deuxième joueur. Les coordonnées tactiles et les flèches suivent cette orientation. Les règles sont repliables pour laisser davantage de place au terrain.
+
+Pendant la partie, la page est immobilisée : les gestes sur le terrain et la molette ne font pas défiler le salon. Quitter restitue la position précédente dans la page. Le bouton « Plein écran » masque aussi l’interface du navigateur lorsque son API le permet ; la fenêtre agrandie fonctionne sans cette API.
+
+Validation Chromium sur PC et en émulation tactile : dimensions des sept jeux, glissades natives sans défilement ni pause, passage portrait/paysage, restitution du défilement, plein écran natif et sortie, relance solo et contrôle du maillet du deuxième joueur avec position partagée. Aucun téléphone physique testé.
