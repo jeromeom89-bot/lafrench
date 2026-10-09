@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: lafrench-arcade
+    runtime: node
+    plan: free
+    buildCommand: npm ci --cache /tmp/lafrench-npm
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: 24
