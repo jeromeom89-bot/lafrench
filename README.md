@@ -1,6 +1,6 @@
 # La French · Arcade social club
 
-Application web multijoueur avec salon de discussion, tables à deux joueurs, amis locaux et classement de session. Interface française responsive, thème néon végétal.
+Application web solo et multijoueur avec 7 jeux, salon de discussion, tables à deux joueurs, amis locaux et classement de session. Interface française responsive, thème néon végétal.
 
 ## Démarrer
 
@@ -31,3 +31,17 @@ Avant une ouverture publique : comptes authentifiés, base de données, modérat
 Le fichier `render.yaml` prépare un service Node.js unique avec WebSocket et contrôle de santé. Pousser le projet dans GitHub, puis sur Render créer un **Blueprint** à partir du dépôt et appliquer la configuration. Render fournit l’adresse HTTPS du service après un déploiement réussi. Aucune clé n’est à ajouter au code.
 
 Le plan gratuit peut mettre le service en veille : premier chargement plus lent et état en mémoire perdu lors d’un redémarrage. Utiliser une seule instance pour ce prototype. Ne pas remplacer le serveur par un hébergement uniquement statique : le multijoueur dépend de Node.js et des WebSockets.
+
+## Mode solo et nouveaux jeux
+
+Sélectionner **Solo** au-dessus des jeux pour démarrer immédiatement : ping-pong et air hockey contre un robot ; fléchettes en défi de 6 tirs ; billard simplifié en entraînement pour vider la table. Les tables à deux restent disponibles via **Multijoueur**.
+
+Trois cartes supplémentaires lancent toujours une partie solo :
+
+- **Snake** : flèches du clavier ou boutons tactiles, fruits à manger, murs et corps à éviter.
+- **Casse-briques** : souris, doigt ou flèches gauche/droite, 40 briques et 3 vies.
+- **Memory** : 8 paires à retrouver en le moins d’essais possible.
+
+Les records solo sont conservés dans `localStorage` sur cet appareil : plus de points/fruits pour les jeux à score, moins de coups/essais pour les billard et Memory terminés. Ils ne sont jamais ajoutés au classement multijoueur. Les simulations solo tournent dans le navigateur et continuent si la connexion au salon est interrompue ; elles s’arrêtent en quittant la partie.
+
+Validation : `npm test` couvre les règles et fins de partie des 7 jeux solo ainsi qu’une partie multijoueur complète. L’interface a aussi été vérifiée dans Chromium : lancement des 7 jeux, relance, retour au multijoueur et contrôles mobiles.
