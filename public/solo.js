@@ -166,7 +166,7 @@
     r.ball={x:400,y:230,vx:r.game==='hockey'?0:(p?-5:5),vy:r.game==='hockey'?0:1.5};r.countdown=1000;r.rally=0;
     if(r.game==='hockey'){r.mallets=[{x:140,y:230,vx:0,vy:0},{x:660,y:230,vx:0,vy:0}];r.targets=r.mallets.map(m=>({...m}));r.ball.x=p===1?220:580; r.goalPause=true;}
   }
-  function arenaStep(r, step) {
+  function arenaStep(r, step, controlRemaining = step) {
     const b=r.ball,s=settings[r.difficulty];
     if(r.game==='pong') {
       if(r.solo){const target=b.vx>0?b.y+Math.sin(r.elapsed/600)*18:230;r.paddles[1]+=clamp(target-r.paddles[1],-s.ai*step,s.ai*step);}
@@ -180,11 +180,16 @@
         r.targets[1]=attack?{x:clamp(b.x+28,434,710),y:clamp(b.y,52,408)}:{x:b.x>400?650:680,y:clamp(230+(b.y-230)*.65,74,386)};
       }
       r.mallets.forEach((m,p)=>{
-        const t=r.targets[p],dx=t.x-m.x,dy=t.y-m.y,d=Math.hypot(dx,dy),max=p===1&&r.solo?s.ai+3:16;
-        // Responsive movement with an acceleration limit; no abrupt velocity spikes.
-        const wanted=d>0?Math.min(max,d*.65):0,wx=d?dx/d*wanted:0,wy=d?dy/d*wanted:0;
-        m.vx=(m.vx||0)+clamp(wx-(m.vx||0),-3*step,3*step);m.vy=(m.vy||0)+clamp(wy-(m.vy||0),-3*step,3*step);
-        const oldX=m.x,oldY=m.y;m.x=clamp(m.x+m.vx*step,p?434:52,p?748:366);m.y=clamp(m.y+m.vy*step,52,408);
+        const t=r.targets[p],dx=t.x-m.x,dy=t.y-m.y,d=Math.hypot(dx,dy),oldX=m.x,oldY=m.y;
+        if(p===1&&r.solo){
+          const wanted=d>0?Math.min(s.ai+3,d*.65):0,wx=d?dx/d*wanted:0,wy=d?dy/d*wanted:0;
+          m.vx=(m.vx||0)+clamp(wx-(m.vx||0),-3*step,3*step);m.vy=(m.vy||0)+clamp(wy-(m.vy||0),-3*step,3*step);
+          m.x+=m.vx*step;m.y+=m.vy*step;
+        }else{
+          // Human control has no inertia. Sweep the straight pointer path in small steps.
+          const fraction=Math.min(1,step/controlRemaining);m.x+=dx*fraction;m.y+=dy*fraction;
+        }
+        m.x=clamp(m.x,p?434:52,p?748:366);m.y=clamp(m.y,52,408);
         m.vx=(m.x-oldX)/step;m.vy=(m.y-oldY)/step;
       });
       b.x+=b.vx*step;b.y+=b.vy*step;
@@ -237,7 +242,11 @@
       }
     }
     // Substeps prevent fast balls passing through cushions, paddles and bricks.
-    for(let remaining=ms;remaining>0;){const dt=Math.min(remaining,1000/120),step=dt/(1000/30);remaining-=dt;if(r.game==='pool')poolStep(r,step);if(['pong','hockey'].includes(r.game))arenaStep(r,step);if(r.game==='breakout')breakoutStep(r,step);if(r.finished||r.countdown>0)break;}
+    for(let remaining=ms;remaining>0;){const dt=Math.min(remaining,1000/120),step=dt/(1000/30);remaining-=dt;if(r.game==='pool')poolStep(r,step);if(r.game==='pong')arenaStep(r,step);if(r.game==='hockey'){
+      const humans=r.solo?[0]:[0,1],distance=Math.max(...humans.map(p=>Math.hypot(r.targets[p].x-r.mallets[p].x,r.targets[p].y-r.mallets[p].y)));
+      const count=Math.max(1,Math.ceil(distance/4)),part=step/count;
+      for(let i=0;i<count;i++){arenaStep(r,part,part*(count-i));if(r.finished||r.countdown>0)break;}
+    }if(r.game==='breakout')breakoutStep(r,step);if(r.finished||r.countdown>0)break;}
     if(r.ball){r.trail.push({x:r.ball.x,y:r.ball.y});r.trail=r.trail.slice(-10);}
   }
   function tick(r,ms){

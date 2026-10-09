@@ -24,8 +24,8 @@ function draw(ctx,r,view={}) {
   line(400,30,400,430,'#c86679',3);circle(400,230,70,null,'#c86679');circle(400,230,7,'#c86679');
   ctx.strokeStyle='#718fb6';ctx.lineWidth=3;ctx.beginPath();ctx.arc(25,230,102,-Math.PI/2,Math.PI/2);ctx.stroke();ctx.beginPath();ctx.arc(775,230,102,Math.PI/2,Math.PI*1.5);ctx.stroke();
   round(8,158,22,144,6,'#0d1625');round(770,158,22,144,6,'#0d1625');});
-  r.mallets.forEach((m,p)=>{const c=p?'#ed7b69':'#578ed8';circle(m.x,m.y+4,30,'#19334966');circle(m.x,m.y,28,c,'#ffffff88');circle(m.x,m.y-1,19,null,'#ffffff55');circle(m.x,m.y-4,12,c,'#ffffff99');});
-  trails('#52616e');ball(r.ball.x,r.ball.y,14,'#303b50');label('BUT',14,149,9,'#9daebe');label('BUT',786,149,9,'#9daebe');
+  r.mallets.forEach((m,p)=>{if(p===me){circle(m.x,m.y,35,null,view.grabbed?'#d7fc72':'#3778bb88');}const c=p?'#ed7b69':'#578ed8';circle(m.x,m.y+4,30,'#19334966');circle(m.x,m.y,28,c,'#ffffff88');circle(m.x,m.y-1,19,null,'#ffffff55');circle(m.x,m.y-4,12,c,'#ffffff99');});
+  trails('#52616e');ball(r.ball.x,r.ball.y,14,'#303b50');label('BUT',14,149,9,'#9daebe');label('BUT',786,149,9,'#9daebe');if(!view.grabbed&&!r.finished)label('SAISIS TON MAILLET ET GLISSE',400,455,11,'#9fbacf');
  }
  if(r.game==='pool'){
   staticLayer('pool',()=>{const wood=ctx.createLinearGradient(0,0,0,460);wood.addColorStop(0,'#7d5236');wood.addColorStop(.5,'#3f281d');wood.addColorStop(1,'#895b3d');round(12,12,776,436,28,wood,'#b68656');round(26,26,748,408,16,'#10372e');

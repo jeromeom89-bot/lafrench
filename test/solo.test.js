@@ -54,3 +54,13 @@ test('Hockey : trapped puck cannot clip through a wall or gain phantom energy',(
  const r=E.create('hockey',{solo:false});r.countdown=0;r.mallets[0]={x:85,y:100,vx:0,vy:0};r.targets[0]={x:52,y:100};r.ball={x:43,y:100,vx:0,vy:0};advance(r,1000);assert.ok(r.ball.x>=43);assert.equal(r.ball.vx,0);assert.ok(Math.hypot(r.ball.x-r.mallets[0].x,r.ball.y-r.mallets[0].y)>=42);
  const center=E.create('hockey',{solo:false});center.countdown=0;center.mallets=[{x:358,y:230,vx:0,vy:0},{x:442,y:230,vx:0,vy:0}];center.targets=[{x:366,y:230},{x:434,y:230}];advance(center,1000);assert.equal(center.ball.vx,0);center.mallets.forEach(m=>assert.ok(Math.hypot(center.ball.x-m.x,center.ball.y-m.y)>=42));
 });
+test('Hockey pointer: immediate straight tracking, sharp reversal and no coasting',()=>{
+ const r=E.create('hockey',{solo:false});r.countdown=0;
+ E.move(r,270,100);E.tick(r,1000/120);assert.ok(Math.abs(r.mallets[0].x-270)<1e-6);assert.ok(Math.abs(r.mallets[0].y-100)<1e-6);
+ E.move(r,100,320);E.tick(r,1000/120);assert.ok(Math.abs(r.mallets[0].x-100)<1e-6);assert.ok(Math.abs(r.mallets[0].y-320)<1e-6);
+ advance(r,150);assert.equal(r.mallets[0].x,100);assert.equal(r.mallets[0].y,320);assert.equal(r.mallets[0].vx,0);assert.equal(r.mallets[0].vy,0);
+});
+test('Hockey pointer: fast sweep hits a puck instead of teleporting over it',()=>{
+ const r=E.create('hockey',{solo:false});r.countdown=0;r.ball={x:250,y:230,vx:0,vy:0};E.move(r,350,230);E.tick(r,1000/120);
+ assert.ok(r.ball.vx>0);assert.ok(r.ball.x>=r.mallets[0].x+41.9);assert.ok(Math.hypot(r.ball.vx,r.ball.vy)<=20);
+});

@@ -7,3 +7,5 @@
 #pool-controls{display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding:14px 0 4px;font-size:11px;color:#b8c8c8}#pool-controls label{display:flex;gap:8px;align-items:center}#pool-controls input{width:90px;accent-color:#d7fc72}#pool-target{margin-left:auto;color:#d7fc72}
 
 #board{contain:paint;transform:translateZ(0)}
+
+#board{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:none}#board.dragging{cursor:grabbing}

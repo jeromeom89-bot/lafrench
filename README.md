@@ -17,7 +17,7 @@ Port 3000, variable `PORT` pour changer. `npm run dev` redémarre le serveur apr
 
 - **Billard 9-ball** : rack en losange avec la 1 devant et la 9 au centre. Premier contact sur la plus petite bille, puis au moins une bande ou une bille empochée. Empocher légalement la 9 gagne la partie ; la 9 empochée sur faute est replacée. Faute = blanche en main, à placer avec un clic dans une zone libre. Puissance dosée, rétro/coulé et effet latéral simplifiés, décélération de roulement, collisions, mâchoires de poches et animation d’empochage. Guide de visée jusqu’au premier contact. Les règles particulières de casse, le push-out et les coups sautés ne sont pas implémentés.
 - **Fléchettes 301** : secteurs dans l’ordre standard, anneaux aux proportions réglementaires, bull 25/50, trois fléchettes par volée, animation de vol et interdiction de relancer avant l’impact. Double final par défaut (bull 50 valable) ; laisser 1, dépasser zéro ou atteindre zéro sans double annule la volée. Une option permet la sortie libre. Dix volées maximum par joueur ; au terme du défi, le score restant le plus bas gagne. Visée légèrement mobile et stabilisation au maintien.
-- **Air hockey** : mouvement 2D avec accélération et vitesse limitées, collision selon la vitesse du maillet, restitution et faible friction du palet. Poteaux physiques, validation du passage complet dans le but, remise en jeu après un point. Un palet bloqué contre une paroi ou entre les deux maillets arrête les maillets au contact. Premier à 7, robot en solo.
+- **Air hockey** : saisie du maillet à la souris ou au doigt, suivi direct en 2D sans inertie pour les humains, déplacement progressif pour le robot, collision selon la vitesse du maillet, restitution et faible friction du palet. Poteaux physiques, validation du passage complet dans le but, remise en jeu après un point. Un palet bloqué contre une paroi ou entre les deux maillets arrête les maillets au contact. Premier à 7, robot en solo.
 - **Ping-pong arcade** : raquettes verticales, angle selon le point de contact, accélération plafonnée, compteur d’échanges et robot en solo. Premier à 7 ; vue arcade de dessus.
 - **Snake** : directions mises en file, clavier, balayage ou boutons tactiles, vitesse progressive, fruits, collisions avec murs et corps.
 - **Casse-briques** : service manuel, trois niveaux, briques renforcées, combos, trois vies, bonus raquette large et balle lente. Souris, doigt ou clavier.
@@ -25,7 +25,7 @@ Port 3000, variable `PORT` pour changer. `npm run dev` redémarre le serveur apr
 
 ## Contrôles et confort
 
-Pause solo (bouton ou P), pause automatique au changement d’onglet, relance, plein écran si le navigateur le permet, sons synthétisés facultatifs. Les flèches servent aussi au multijoueur. Espace maintenu/relâché permet de charger et tirer au billard et aux fléchettes ; Espace sert la balle au casse-briques. Les niveaux de difficulté changent la visée des fléchettes, la vitesse de Snake et celle du robot.
+Pause solo (bouton ou P), suspension temporaire quand l’onglet devient masqué avec reprise automatique au retour, relance, plein écran si le navigateur le permet, sons synthétisés facultatifs. Les flèches servent aussi au multijoueur. Espace maintenu/relâché permet de charger et tirer au billard et aux fléchettes ; Espace sert la balle au casse-briques. Les niveaux de difficulté changent la visée des fléchettes, la vitesse de Snake et celle du robot.
 
 Records solo conservés sur cet appareil par jeu et difficulté (`localStorage`), distincts des victoires multijoueurs. Les records de versions antérieures ne sont pas réutilisés pour ces nouvelles règles.
 
@@ -50,3 +50,11 @@ La vérification de fluidité a été répétée dans Chromium avec deux clients
 ## Mises à jour automatiques
 
 Le Blueprint cible explicitement `main` et active `autoDeploy`. Si le service a été créé manuellement ou si un réglage a été changé dans Render, vérifier une fois **Settings → Build & Deploy → Auto-Deploy → On Commit** et la branche `main`. Un push déclenche alors le déploiement ; le nouveau site devient accessible à la même adresse après réussite du déploiement. Un déploiement en échec laisse l’ancienne version active. Le HTML est servi sans stockage en cache ; scripts et styles sont revalidés à chaque chargement. Les pages déjà ouvertes doivent être rechargées pour récupérer le nouveau code.
+
+## Contrôle du hockey sur téléphone et PC
+
+Maintenir le maillet puis glisser : capture du pointeur, conservation du point de saisie et trajectoire directe. Le maillet reste posé après relâchement ; le survol seul ne le déplace plus. Une zone de saisie tactile plus large facilite la prise du maillet sur un petit écran. Le mouvement rapide est balayé par segments de 4 unités maximum pour garder les collisions fiables. Les frontières de la moitié de table et les contacts solides restent contraignants. Les flèches permettent toujours de jouer sur PC.
+
+Une simple perte de focus (clavier virtuel, focus du navigateur) ne déclenche plus une pause. Un véritable masquage d’onglet suspend la partie solo ; elle reprend au retour si la pause était automatique. Une pause manuelle reste active. En multijoueur, les positions restent contrôlées par le serveur : la latence réseau peut toujours retarder légèrement le retour visuel.
+
+Vérification Chromium : événements tactiles natifs via émulation mobile, prise hors centre, changements de direction, relâchement, perte de focus, masquage et retour, pause manuelle, souris sur PC et maillet du joueur droit à deux navigateurs. Aucun test sur un téléphone physique dans cet environnement.
