@@ -1,47 +1,46 @@
 # La French · Arcade social club
 
-Application web solo et multijoueur avec 7 jeux, salon de discussion, tables à deux joueurs, amis locaux et classement de session. Interface française responsive, thème néon végétal.
+Arcade française responsive : 7 jeux, solo et tables multijoueurs à deux, tchat, présence, amis locaux et classement de session.
 
-## Démarrer
+## Développement
 
-Node.js 24, puis :
+Node.js 24 :
 
 ```sh
 npm ci --cache /tmp/lafrench-npm
 npm start
 ```
 
-Le serveur écoute sur le port 3000 (`PORT` pour changer). Ouvrir l’application dans deux navigateurs avec deux pseudos pour jouer ensemble. Les deux joueurs doivent rejoindre le même serveur. `npm run dev` active le redémarrage du serveur lors des modifications. `npm test` vérifie réellement deux connexions WebSocket, le chat, une partie et le classement.
+Port 3000, variable `PORT` pour changer. `npm run dev` redémarre le serveur après modification. `npm test` vérifie le moteur et les échanges multijoueurs. Ouvrir deux navigateurs avec deux pseudos, sur le même serveur, pour jouer à deux.
 
 ## Jeux
 
-- Fléchettes : cible à secteurs, 6 lancers par joueur, score total.
-- Ping-pong : duel de raquettes, premier à 7.
-- Air hockey : variante arcade à palets, premier à 7.
-- Billard : prototype simplifié à visée, une bille touchée rapporte un point ; ce n’est pas une simulation des règles du billard.
+- **Billard arcade à 9 billes** : physique avec impulsion, collisions, friction, bandes, six poches et faute de la blanche. Maintenir pour doser puis relâcher pour frapper dans la direction visée. Une bille empochée rapporte un point et conserve le tour ; sinon le tour change. La blanche revient à une position libre après une faute. En solo, vider la table en le moins de coups possible. Il s’agit de règles arcade, pas des règles officielles du 9-ball.
+- **Fléchettes 301** : score exact à atteindre, trois tirs par volée, dépassement annulant la volée, dix volées maximum par joueur. La barre verte stabilise la visée au relâchement. En multijoueur, le premier à zéro gagne ; au bout des dix volées, le score restant le plus bas gagne, ou égalité. Sortie simple, pas de double obligatoire.
+- **Air hockey** : maillets mobiles en 2D, collisions selon la vitesse du maillet, buts dans les ouvertures latérales, murs et friction. Premier à 7, robot en solo.
+- **Ping-pong arcade** : raquettes verticales, angle selon le point de contact, accélération plafonnée, compteur d’échanges et robot en solo. Premier à 7 ; vue arcade de dessus, pas une simulation 3D de tennis de table.
+- **Snake** : directions mises en file, clavier, balayage ou boutons tactiles, vitesse progressive, fruits, collisions avec murs et corps.
+- **Casse-briques** : service manuel, trois niveaux, briques renforcées, combos, trois vies, bonus raquette large et balle lente. Souris, doigt ou clavier.
+- **Memory** : aperçu initial, cartes à retourner, huit paires, nombre d’essais, durée et séries de bonnes réponses.
 
-## Périmètre
+## Contrôles et confort
 
-Profils invités sans authentification. La liste d’amis est conservée dans le navigateur par pseudo, sans demande réciproque. Présence, salons, messages et classement sont en mémoire et disparaissent au redémarrage. Les égalités aux jeux de score sont départagées en faveur du créateur de table. Aucun joueur fictif ni faux classement.
+Pause solo (bouton ou P), pause automatique au changement d’onglet, relance, plein écran si le navigateur le permet, sons synthétisés facultatifs. Les flèches servent aussi au multijoueur. Espace maintenu/relâché permet de charger et tirer au billard et aux fléchettes ; Espace sert la balle au casse-briques. Les niveaux de difficulté changent la visée des fléchettes, la vitesse de Snake et celle du robot.
 
-Avant une ouverture publique : comptes authentifiés, base de données, modération, protections anti-abus, invitations privées et règles/physique complètes pour chaque jeu. Servir derrière HTTPS pour chiffrer les WebSockets. Les polices Google sont facultatives : les polices système prennent le relais hors réseau.
+Records solo conservés sur cet appareil par jeu et difficulté (`localStorage`), distincts des victoires multijoueurs. Les anciens records du premier prototype ne sont pas réutilisés car les règles ont changé.
 
-## Déploiement sur Render
+## Architecture et limites
 
-Le fichier `render.yaml` prépare un service Node.js unique avec WebSocket et contrôle de santé. Pousser le projet dans GitHub, puis sur Render créer un **Blueprint** à partir du dépôt et appliquer la configuration. Render fournit l’adresse HTTPS du service après un déploiement réussi. Aucune clé n’est à ajouter au code.
+`public/solo.js` contient le moteur partagé, utilisé dans le navigateur en solo et sur le serveur en multijoueur. `public/renderer.js` dessine les terrains. Le serveur contrôle la physique, les tours et les scores multijoueurs ; les clients envoient leurs mouvements et leurs tirs.
 
-Le plan gratuit peut mettre le service en veille : premier chargement plus lent et état en mémoire perdu lors d’un redémarrage. Utiliser une seule instance pour ce prototype. Ne pas remplacer le serveur par un hébergement uniquement statique : le multijoueur dépend de Node.js et des WebSockets.
+Profils invités sans authentification. Amis locaux par pseudo, sans demande réciproque. Présence, salons, messages et classement sont en mémoire et disparaissent au redémarrage. Une seule instance serveur pour ce prototype. Avant ouverture publique à grande échelle : comptes, base de données, modération et protections anti-abus.
 
-## Mode solo et nouveaux jeux
+## Déploiement Render
 
-Sélectionner **Solo** au-dessus des jeux pour démarrer immédiatement : ping-pong et air hockey contre un robot ; fléchettes en défi de 6 tirs ; billard simplifié en entraînement pour vider la table. Les tables à deux restent disponibles via **Multijoueur**.
+`render.yaml` déclare le serveur Node avec WebSockets et contrôle de santé `/health`. Créer un Blueprint sur le dépôt GitHub, branche `main`, puis appliquer la configuration. Les mises à jour de `main` peuvent être déployées automatiquement ; sinon sélectionner **Manual Deploy → Deploy latest commit**.
 
-Trois cartes supplémentaires lancent toujours une partie solo :
+Le plan gratuit peut mettre le service en veille ; premier chargement plus lent et état perdu au redémarrage. Utiliser HTTPS pour chiffrer le trafic. Un hébergement statique seul ne fait pas tourner le multijoueur. Les polices Google sont facultatives, avec repli système.
 
-- **Snake** : flèches du clavier ou boutons tactiles, fruits à manger, murs et corps à éviter.
-- **Casse-briques** : souris, doigt ou flèches gauche/droite, 40 briques et 3 vies.
-- **Memory** : 8 paires à retrouver en le moins d’essais possible.
+## Validation
 
-Les records solo sont conservés dans `localStorage` sur cet appareil : plus de points/fruits pour les jeux à score, moins de coups/essais pour les billard et Memory terminés. Ils ne sont jamais ajoutés au classement multijoueur. Les simulations solo tournent dans le navigateur et continuent si la connexion au salon est interrompue ; elles s’arrêtent en quittant la partie.
-
-Validation : `npm test` couvre les règles et fins de partie des 7 jeux solo ainsi qu’une partie multijoueur complète. L’interface a aussi été vérifiée dans Chromium : lancement des 7 jeux, relance, retour au multijoueur et contrôles mobiles.
+Tests de règles : 301/bust, collisions et poches de billard, faute, alternance des tours, angles de raquette, buts de hockey, Snake, bonus/niveaux/vies de casse-briques, aperçu et paires de Memory, pause. Test WebSocket : deux joueurs, tchat, défi 301 complet et classement. Vérifications Chromium sur les sept jeux, interactions souris/clavier, pause, difficulté, mobile et hockey à deux navigateurs.
