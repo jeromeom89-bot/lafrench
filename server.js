@@ -3,7 +3,11 @@ const Engine = require('./public/solo');
 const { WebSocketServer, WebSocket } = require('ws');
 const { randomUUID } = require('node:crypto');
 const app = express();
-app.use(express.static('public'));
+app.use(express.static('public', {
+  setHeaders(res, path) {
+    res.setHeader('Cache-Control', path.endsWith('.html') ? 'no-store' : 'no-cache, must-revalidate');
+  }
+}));
 app.get('/health', (_, res) => res.json({ ok: true }));
 const server = app.listen(process.env.PORT || 3000, '0.0.0.0');
 const wss = new WebSocketServer({ server, maxPayload: 4096 });

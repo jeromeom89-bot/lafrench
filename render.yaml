@@ -2,6 +2,8 @@ services:
   - type: web
     name: lafrench-arcade
     runtime: node
+    branch: main
+    autoDeploy: true
     plan: free
     buildCommand: npm ci --cache /tmp/lafrench-npm
     startCommand: npm start

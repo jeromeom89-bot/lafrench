@@ -6,7 +6,8 @@ const delay=ms=>new Promise(r=>setTimeout(r,ms));
 test('Two players: chat, animated 301 with double checkout, ranking and departure', {timeout:25000},async t=>{
  const server=spawn(process.execPath,['server.js'],{env:{...process.env,PORT:'3199'}});t.after(()=>server.kill());
  let ready=false;for(let i=0;i<50;i++){try{ready=(await fetch('http://127.0.0.1:3199/health')).ok;if(ready)break;}catch{}await delay(50);}assert.ok(ready);
- assert.match(await(await fetch('http://127.0.0.1:3199')).text(),/La French/);
+ const page=await fetch('http://127.0.0.1:3199');assert.equal(page.headers.get('cache-control'),'no-store');assert.match(await page.text(),/La French/);
+ const script=await fetch('http://127.0.0.1:3199/app.js');assert.equal(script.headers.get('cache-control'),'no-cache, must-revalidate');
  async function client(name){const ws=new WebSocket('ws://127.0.0.1:3199'),messages=[];ws.on('message',b=>messages.push(JSON.parse(b)));await new Promise(r=>ws.once('open',r));ws.send(JSON.stringify({type:'join',name}));t.after(()=>ws.close());return{ws,messages,send:m=>ws.send(JSON.stringify(m)),wait:async fn=>{for(let i=0;i<200;i++){const m=messages.find(fn);if(m)return m;await delay(20);}throw Error('Expected multiplayer message missing');}};}
  const a=await client('Alice'),b=await client('Bob');await a.wait(m=>m.type==='lobby'&&m.users.length===2);
  a.send({type:'chat',text:'Salut Bob'});assert.equal((await b.wait(m=>m.type==='chat')).text,'Salut Bob');
