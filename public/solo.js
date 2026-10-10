@@ -2,33 +2,33 @@
 (function (root) {
   const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
   const sectors = [20,1,18,4,13,6,10,15,2,17,3,19,7,16,8,11,14,9,12,5];
-  const settings = { easy: { ai: 3, speed: 4, snake: 170 }, normal: { ai: 4.5, speed: 5, snake: 140 }, hard: { ai: 6, speed: 6, snake: 110 } };
+  const settings = { easy: { ai: 4, speed: 4, snake: 170, reaction: 240, error: 42, paddle: 70, preview: 3000, memoryTime: 0, volleys: 10, shots: 0 }, normal: { ai: 7, speed: 6, snake: 125, reaction: 130, error: 18, paddle: 54, preview: 1400, memoryTime: 120000, volleys: 6, shots: 40 }, hard: { ai: 10, speed: 8, snake: 95, reaction: 70, error: 7, paddle: 42, preview: 650, memoryTime: 75000, volleys: 4, shots: 25 } };
   const FIXED_MS = 1000 / 120;
   function finish(r, message, winner = 0) { r.finished = true; r.result = message; r.winner = winner; r.event = 'finish'; }
   function event(r, type, x, y) { r.event = type; r.eventId++; r.eventPoint = { x, y }; }
   function level(r) {
     r.bricks = Array.from({ length: 50 }, (_, i) => ({ x: 45 + i % 10 * 72, y: 48 + Math.floor(i / 10) * 29, hp: r.level > 1 && i < 20 ? 2 : 1, active: true }));
-    r.ball = { x: r.paddle, y: 392, vx: 3, vy: -5 }; r.serving = true; r.combo = 0;
+    const speed=settings[r.difficulty].speed+r.level-1;r.ball = { x: r.paddle, y: 392, vx: speed*.5, vy: -speed };  r.serving = true; r.combo = 0;
   }
   function create(game, options = {}) {
     const r = { game, id: 'SOLO', solo: options.solo !== false, difficulty: options.difficulty || 'normal', players: ['you', 'bot'], started: true, finished: false, paused: false, score: [0, 0], turn: 0, shots: 0, elapsed: 0, eventId: 0, event: '', message: '', countdown: 1200, paddles: [230, 230], ball: { x: 400, y: 230, vx: 5, vy: 1.5 }, trail: [] };
     if (!settings[r.difficulty]) r.difficulty = 'normal';
-    if (game === 'pong') { r.rally = 0; r.bestRally = 0; }
+    if (game === 'pong') { r.rally = 0; r.bestRally = 0; r.ball.vx=r.solo?settings[r.difficulty].speed:5; }
     if (game === 'hockey') { r.mallets = [{ x: 140, y: 230 }, { x: 660, y: 230 }]; r.targets = r.mallets.map(p => ({ ...p })); r.mallets.forEach(m=>{m.vx=0;m.vy=0;}); r.ball = { x: 400, y: 230, vx: 0, vy: 0 }; }
-    if (game === 'darts') { r.remaining = [301, 301]; r.volleyStart = 301; r.volley = 0; r.round = 1; r.throws = []; r.countdown = 0; r.doubleOut=options.doubleOut!==false; r.dartFlight=null; r.pendingVolley=false; r.turnHistory=[]; }
+    if (game === 'darts') { r.remaining = [301, 301]; r.volleyStart = 301; r.volley = 0; r.round = 1; r.throws = []; r.countdown = 0; r.doubleOut=options.doubleOut!==false; r.dartFlight=null; r.pendingVolley=false; r.turnHistory=[]; r.maxRounds=r.solo?settings[r.difficulty].volleys:10; }
     if (game === 'pool') {
       r.cue = { x: 220, y: 230, vx: 0, vy: 0, active: true, n: 0 };
       r.balls = []; const numbers=[1,2,3,4,9,5,6,7,8]; let index=0;
       [1,2,3,2,1].forEach((count,col)=>{for(let row=0;row<count;row++)r.balls.push({x:500+col*21.1,y:230+(row-(count-1)/2)*24.4,vx:0,vy:0,active:true,n:numbers[index++],roll:0});});
       r.required=1; r.firstHit=null; r.railAfterHit=false; r.ballInHand=false; r.spin={x:0,y:0}; r.cueSpin=0; r.potted=[]; r.sinking=[];
-      r.moving = false; r.pocketed = 0; r.scratch = false; r.countdown = 0;
+      r.shotLimit=r.solo?settings[r.difficulty].shots:0; r.moving = false; r.pocketed = 0; r.scratch = false; r.countdown = 0;
     }
-    if (game === 'snake') { r.snake = [{ x: 8, y: 9 }, { x: 7, y: 9 }, { x: 6, y: 9 }]; r.dir = { x: 1, y: 0 }; r.queue = []; r.food = { x: 16, y: 9 }; r.acc = 0; r.level = 1; }
-    if (game === 'breakout') { r.paddle = 400; r.lives = 3; r.level = 1; r.drops = []; r.wideUntil = 0; r.slowUntil = 0; level(r); }
+    if (game === 'snake') { r.snake = [{ x: 8, y: 9 }, { x: 7, y: 9 }, { x: 6, y: 9 }]; r.dir = { x: 1, y: 0 }; r.queue = []; r.food = { x: 16, y: 9 }; r.acc = 0; r.level = 1; r.moveInterval=settings[r.difficulty].snake; }
+    if (game === 'breakout') { r.paddleWidth=settings[r.difficulty].paddle; r.paddle = 400; r.lives = 3; r.level = 1; r.drops = []; r.wideUntil = 0; r.slowUntil = 0; level(r); }
     if (game === 'memory') {
       r.cards = Array.from({ length: 16 }, (_, i) => ({ value: i % 8, matched: false }));
       for (let i = 15; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [r.cards[i], r.cards[j]] = [r.cards[j], r.cards[i]]; }
-      r.flipped = []; r.moves = 0; r.hideAt = 0; r.previewUntil = 2200; r.countdown = 0; r.streak = 0;
+      r.flipped = []; r.moves = 0; r.hideAt = 0; r.previewUntil = settings[r.difficulty].preview; r.timeLimit=settings[r.difficulty].memoryTime; r.countdown = 0; r.streak = 0;
     }
     return r;
   }
@@ -45,9 +45,9 @@
     if (!r.solo) r.turn = 1 - r.turn;
     if (r.solo || r.turn === 0) r.round++;
     r.volleyStart = r.remaining[r.turn];
-    if (r.round > 10) {
+    if (r.round > r.maxRounds) {
       const winner = r.remaining[0] === r.remaining[1] ? -1 : r.remaining[0] < r.remaining[1] ? 0 : 1;
-      finish(r, r.solo ? `Défi terminé · ${r.remaining[0]} points restants` : winner < 0 ? 'Égalité !' : 'Le meilleur score remporte le défi.', r.solo ? 0 : winner);
+      finish(r, r.solo ? `Défi terminé · ${r.remaining[0]} points restants` : winner < 0 ? 'Égalité !' : 'Le meilleur score remporte le défi.', r.solo ? 1 : winner);
     }
   }
   function shot(r, x, y, power = 0.6, player = 0) {
@@ -74,7 +74,7 @@
         if (r.cards[a].value === r.cards[b].value) {
           r.cards[a].matched = r.cards[b].matched = true; r.score[0]++; r.streak++; r.flipped = []; r.message = r.streak > 1 ? `Série de ${r.streak} paires !` : 'Paire trouvée !'; event(r, 'pair', x, y);
           if (r.score[0] === 8) finish(r, `8 paires · ${r.moves} essais · ${Math.floor(r.elapsed / 1000)} s`);
-        } else { r.hideAt = r.elapsed + 900; r.streak = 0; r.message = 'Mémorise ces deux cartes…'; }
+        } else { r.hideAt = r.elapsed + (r.difficulty==='hard'?600:900); r.streak = 0; r.message = 'Mémorise ces deux cartes…'; }
       }
     }
   }
@@ -120,6 +120,7 @@
       if(!r.solo)r.turn=1-r.turn;
       r.cue.vx=r.cue.vy=0;r.ballInHand=true;r.message='Faute : '+foul+' · place la blanche sur la table.';
     }else{if(!r.solo&&!r.pocketed)r.turn=1-r.turn;r.message=r.pocketed?'Bille empochée · continue !':'À l’adversaire de jouer.';}
+    if(r.shotLimit&&r.shots>=r.shotLimit){finish(r,`Défi perdu · ${r.shotLimit} coups utilisés`,1);return;}
     const active=r.balls.filter(b=>b.active);r.required=active.length?Math.min(...active.map(b=>b.n)):0;r.cueSpin=0;
     if(!active.length&&!foul)finish(r,r.solo?`Table vidée en ${r.shots} coups !`:'Table vidée !',r.turn);
   }
@@ -163,22 +164,44 @@
   function goal(r, p) {
     r.score[p]++; event(r,'goal',400,230);
     if(r.score[p]>=7){finish(r,p===0?'Victoire !':'Adversaire vainqueur.',p);return;}
-    r.ball={x:400,y:230,vx:r.game==='hockey'?0:(p?-5:5),vy:r.game==='hockey'?0:1.5};r.countdown=1000;r.rally=0;
+    r.ball={x:400,y:230,vx:r.game==='hockey'?0:(p?-1:1)*(r.solo?settings[r.difficulty].speed:5),vy:r.game==='hockey'?0:1.5};r.countdown=1000;r.rally=0;
     if(r.game==='hockey'){r.mallets=[{x:140,y:230,vx:0,vy:0},{x:660,y:230,vx:0,vy:0}];r.targets=r.mallets.map(m=>({...m}));r.ball.x=p===1?220:580; r.goalPause=true;}
   }
+  // Reflect a projected shot through any number of cushion bounces.
+  function reflected(y, min, max) { const span=max-min,t=((y-min)%(2*span)+2*span)%(2*span);return min+(t>span?2*span-t:t); }
+  function robotPlan(r) {
+    if(!r.solo||r.elapsed<(r.aiAt||0))return;
+    const b=r.ball,s=settings[r.difficulty],noise=Math.sin(r.elapsed*.0027)*s.error;
+    r.aiAt=r.elapsed+s.reaction;
+    if(r.game==='pong'){
+      const time=b.vx>0?Math.max(0,(730-b.x)/b.vx):0;
+      const hit=reflected(b.y+b.vy*time,18,442),attack=r.difficulty==='easy'?0:(r.paddles[0]<230?1:-1)*(r.difficulty==='hard'?32:22);
+      r.aiY=b.vx>0?clamp(hit-attack+noise,62,398):230;
+    }else{
+      const fast=b.vx>3&&b.x>400;
+      if(fast){
+        const time=Math.max(0,(688-b.x)/b.vx);
+        r.targets[1]={x:730,y:clamp(reflected(b.y+b.vy*time,43,417)+noise*.5,52,408)};
+      }else if(b.x>=390){
+        // Approach from behind the puck, then drive it toward the exposed goal.
+        const m=r.mallets[1],goalY=clamp(230+(230-r.mallets[0].y)*.4,195,265);
+        const slope=(b.y-goalY)/Math.max(100,b.x-30),behind={x:clamp(b.x+56,434,748),y:clamp(b.y+slope*56+noise*.15,52,408)};
+        const aligned=m.x>b.x+30&&Math.abs(m.y-behind.y)<18;
+        r.targets[1]=aligned?{x:clamp(b.x-18,434,748),y:clamp(b.y-slope*18,52,408)}:behind;
+      }else{
+        r.targets[1]={x:690,y:clamp(230+(b.y-230)*.3+noise*.2,80,380)};
+      }
+    }
+  }
   function arenaStep(r, step, controlRemaining = step) {
-    const b=r.ball,s=settings[r.difficulty];
+    const b=r.ball,s=settings[r.difficulty];robotPlan(r);
     if(r.game==='pong') {
-      if(r.solo){const target=b.vx>0?b.y+Math.sin(r.elapsed/600)*18:230;r.paddles[1]+=clamp(target-r.paddles[1],-s.ai*step,s.ai*step);}
+      if(r.solo)r.paddles[1]+=clamp((r.aiY??230)-r.paddles[1],-s.ai*step,s.ai*step);
       b.x+=b.vx*step;b.y+=b.vy*step;
       if(b.y<18||b.y>442){b.y=clamp(b.y,18,442);b.vy*=-1;event(r,'wall',b.x,b.y);}
       [0,1].forEach(p=>{if(Math.abs(b.x-(p?750:50))<20&&Math.abs(b.y-r.paddles[p])<61&&((p===0&&b.vx<0)||(p===1&&b.vx>0))){const speed=Math.min(12,Math.hypot(b.vx,b.vy)+.4),angle=(b.y-r.paddles[p])/61*1.05;b.vx=(p?-1:1)*speed*Math.cos(angle);b.vy=speed*Math.sin(angle);b.x=p?729:71;r.rally++;r.bestRally=Math.max(r.bestRally,r.rally);event(r,'paddle',b.x,b.y);}});
       if(b.x<0||b.x>800)goal(r,b.x<0?1:0);
     } else {
-      if(r.solo){
-        const m=r.mallets[1],attack=b.x>420&&Math.hypot(b.vx,b.vy)<7;
-        r.targets[1]=attack?{x:clamp(b.x+28,434,710),y:clamp(b.y,52,408)}:{x:b.x>400?650:680,y:clamp(230+(b.y-230)*.65,74,386)};
-      }
       r.mallets.forEach((m,p)=>{
         const t=r.targets[p],dx=t.x-m.x,dy=t.y-m.y,d=Math.hypot(dx,dy),oldX=m.x,oldY=m.y;
         if(p===1&&r.solo){
@@ -221,21 +244,22 @@
     const b=r.ball;if(r.serving){b.x=r.paddle;b.y=392;return;}
     const old={x:b.x,y:b.y};const slow=r.elapsed<r.slowUntil ? .65 : 1;b.x+=b.vx*step*slow;b.y+=b.vy*step*slow;
     if(b.x<12||b.x>788){b.x=clamp(b.x,12,788);b.vx*=-1;event(r,'wall',b.x,b.y);}if(b.y<14){b.y=14;b.vy=Math.abs(b.vy);}
-    const width=r.elapsed<r.wideUntil?90:60;
-    if(b.vy>0&&old.y<=402&&b.y>=402&&Math.abs(b.x-r.paddle)<width+9){const a=clamp((b.x-r.paddle)/width,-1,1)*1.05,speed=Math.min(10,Math.hypot(b.vx,b.vy)+.1);b.vy=-Math.cos(a)*speed;b.vx=Math.sin(a)*speed;b.y=401;r.combo=0;event(r,'paddle',b.x,b.y);}
+    const width=settings[r.difficulty].paddle*(r.elapsed<r.wideUntil?1.5:1);
+    if(b.vy>0&&old.y<=402&&b.y>=402&&Math.abs(b.x-r.paddle)<width+9){const a=clamp((b.x-r.paddle)/width,-1,1)*1.05,speed=Math.min(14,Math.hypot(b.vx,b.vy)+.18);b.vy=-Math.cos(a)*speed;b.vx=Math.sin(a)*speed;b.y=401;r.combo=0;event(r,'paddle',b.x,b.y);}
     const brick=r.bricks.find(t=>t.active&&b.x>=t.x-9&&b.x<=t.x+71&&b.y>=t.y-9&&b.y<=t.y+30);
     if(brick){brick.hp--;if(!brick.hp){brick.active=false;r.combo++;r.score[0]+=10+Math.min(50,r.combo*2);if((r.bricks.filter(b=>!b.active).length)%7===0)r.drops.push({x:brick.x+31,y:brick.y,type:r.drops.length%2?'slow':'wide'});}if(old.x<brick.x-9||old.x>brick.x+71)b.vx*=-1;else b.vy*=-1;event(r,'brick',b.x,b.y);if(r.bricks.every(b=>!b.active)){if(r.level===3){finish(r,`3 niveaux terminés · ${r.score[0]} points !`);return;}r.level++;level(r);r.message=`Niveau ${r.level} · clique pour servir`;}}
     r.drops=r.drops.filter(d=>{d.y+=2*step;if(d.y>400&&Math.abs(d.x-r.paddle)<width){if(d.type==='wide')r.wideUntil=r.elapsed+12000;else r.slowUntil=r.elapsed+10000;r.message=d.type==='wide'?'Raquette élargie !':'Balle ralentie !';event(r,'bonus',d.x,d.y);return false;}return d.y<460;});
-    if(b.y>475){r.lives--;event(r,'miss',b.x,450);if(!r.lives)finish(r,`Fin de partie · ${r.score[0]} points`);else{r.serving=true;r.ball={x:r.paddle,y:392,vx:3,vy:-5};r.message='Une vie perdue · clique pour servir';}}
+    if(b.y>475){r.lives--;event(r,'miss',b.x,450);if(!r.lives)finish(r,`Fin de partie · ${r.score[0]} points`);else{r.serving=true;r.ball={x:r.paddle,y:392,vx:(settings[r.difficulty].speed+r.level-1)*.5,vy:-(settings[r.difficulty].speed+r.level-1)};r.message='Une vie perdue · clique pour servir';}}
   }
   function stepTick(r,ms) {
     if(r.finished||r.paused||!r.started)return;
     r.elapsed+=ms;
     if(r.countdown>0){r.countdown=Math.max(0,r.countdown-ms);return;}
     if(r.game==='darts'){if(r.dartFlight&&r.elapsed>=r.dartFlight.lands)resolveDart(r);if(r.pendingVolley&&r.elapsed>=r.volleyAt){r.pendingVolley=false;nextVolley(r);}}
+    if(r.game==='memory'&&r.timeLimit&&r.elapsed>=r.previewUntil+r.timeLimit){finish(r,`Temps écoulé · ${r.score[0]}/8 paires`,1);return;}
     if(r.game==='memory'&&r.hideAt&&r.elapsed>=r.hideAt){r.flipped=[];r.hideAt=0;}
     if(r.game==='snake'){
-      r.acc+=ms;const interval=Math.max(65,settings[r.difficulty].snake-r.score[0]*3);
+      r.acc+=ms;const interval=Math.max(55,settings[r.difficulty].snake-r.score[0]*3);r.moveInterval=interval;
       if(r.acc>=interval){r.acc-=interval;if(r.queue.length)r.dir=r.queue.shift();const h={x:r.snake[0].x+r.dir.x,y:r.snake[0].y+r.dir.y},eat=h.x===r.food.x&&h.y===r.food.y;
         if(h.x<0||h.x>=32||h.y<0||h.y>=18||(eat?r.snake:r.snake.slice(0,-1)).some(p=>p.x===h.x&&p.y===h.y)){finish(r,`Fin de partie · ${r.score[0]} fruits`);return;}
         r.snake.unshift(h);if(eat){r.score[0]++;r.level=1+Math.floor(r.score[0]/5);event(r,'fruit',h.x*25+12,h.y*25+17);if(r.snake.length===576){finish(r,'Grille remplie !');return;}do{r.food={x:Math.floor(Math.random()*32),y:Math.floor(Math.random()*18)};}while(r.snake.some(p=>p.x===r.food.x&&p.y===r.food.y));}else r.snake.pop();

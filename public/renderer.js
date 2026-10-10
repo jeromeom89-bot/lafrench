@@ -60,12 +60,12 @@ function draw(ctx,r,view={}) {
   round(0,0,800,460,12,'#101e20');for(let x=0;x<800;x+=25)line(x,5,x,455,'#b5df9d08');for(let y=5;y<460;y+=25)line(0,y,800,y,'#b5df9d08');
   r.snake.forEach((p,i)=>{round(p.x*25+2,p.y*25+7,21,21,6,i?'#82b861':'#d7fc72');if(!i){const dx=r.dir.x,dy=r.dir.y;circle(p.x*25+12+dx*5+dy*4,p.y*25+17+dy*5+dx*4,2,'#1a2b16');circle(p.x*25+12+dx*5-dy*4,p.y*25+17+dy*5-dx*4,2,'#1a2b16');}});
   const pulse=1+Math.sin(time/180)*.1;circle(r.food.x*25+12,r.food.y*25+17,9*pulse,'#f18b70');line(r.food.x*25+12,r.food.y*25+8,r.food.x*25+15,r.food.y*25+3,'#b0d56c',2);
-  label(`NIVEAU ${r.level} · ${Math.max(65,({easy:170,normal:140,hard:110}[r.difficulty])-r.score[0]*3)} ms / case`,400,455,10,'#7f9c83');
+  label(`NIVEAU ${r.level} · ${r.moveInterval} ms / case`,400,455,10,'#7f9c83');
  }
  if(r.game==='breakout'){
   for(let i=0;i<40;i++)circle((i*137)%800,(i*71)%460,1,'#d8d9ff44');
   r.bricks.forEach((b,i)=>{if(b.active){const c=['#f6a393','#f9ca79','#d7fc72','#80d6cf','#a49df0'][Math.floor(i/10)];ctx.save();ctx.shadowBlur=10;ctx.shadowColor=c+'66';round(b.x,b.y,62,21,5,c);ctx.restore();line(b.x+5,b.y+4,b.x+56,b.y+4,'#ffffff77',2);if(b.hp>1)label('• •',b.x+31,b.y+14,12,'#513e54');}});
-  const width=time<r.wideUntil?90:60;round(r.paddle-width,410,width*2,13,7,'#d7fc72');round(r.paddle-width+10,412,width*2-20,3,2,'#ffffffaa');trails('#d7fc72');ball(r.ball.x,r.ball.y,9,'#ffffff');
+  const width=r.paddleWidth*(time<r.wideUntil?1.5:1);round(r.paddle-width,410,width*2,13,7,'#d7fc72');round(r.paddle-width+10,412,width*2-20,3,2,'#ffffffaa');trails('#d7fc72');ball(r.ball.x,r.ball.y,9,'#ffffff');
   r.drops.forEach(d=>{round(d.x-13,d.y-12,26,24,6,d.type==='wide'?'#80d6cf':'#bca9ff');label(d.type==='wide'?'↔':'◷',d.x,d.y+5,17,'#172326');});
   label(`NIVEAU ${r.level}/3`,78,28,12,'#a99ec7');label('♥ '.repeat(r.lives),710,28,16,'#f6a393');if(r.serving){label('CLIQUE OU ESPACE POUR SERVIR',400,270,22,'#d7fc72');label('Attrape les bonus : raquette large et balle lente',400,305,13,'#b6b6ce');}
  }

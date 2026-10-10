@@ -66,3 +66,17 @@ Tous les jeux s’ouvrent dans une fenêtre occupant l’écran disponible. Le t
 Pendant la partie, la page est immobilisée : les gestes sur le terrain et la molette ne font pas défiler le salon. Quitter restitue la position précédente dans la page. Le bouton « Plein écran » masque aussi l’interface du navigateur lorsque son API le permet ; la fenêtre agrandie fonctionne sans cette API.
 
 Validation Chromium sur PC et en émulation tactile : dimensions des sept jeux, glissades natives sans défilement ni pause, passage portrait/paysage, restitution du défilement, plein écran natif et sortie, relance solo et contrôle du maillet du deuxième joueur avec position partagée. Aucun téléphone physique testé.
+
+## Défis solo et robots tactiques
+
+Le hockey anticipe les tirs et leurs rebonds sur les bandes. Le robot se replace derrière un palet lent pour viser une ouverture du but. Le ping-pong calcule la trajectoire après rebond et vise le côté libre de la raquette adverse. Les robots ont une vitesse limitée, un délai de réaction et une erreur de visée selon la difficulté ; ils ne déplacent pas directement le palet ou la balle. Les contrôles humains restent directs.
+
+| Mode | Fléchettes | Billard 9-ball | Memory | Casse-briques |
+| --- | --- | --- | --- | --- |
+| Détente | 10 volées | Coups illimités | Aperçu 3 s, sans chrono | Raquette large, balle lente |
+| Normal | 6 volées | 40 coups | Aperçu 1,4 s, puis 120 s | Raquette moyenne, balle plus rapide |
+| Expert | 4 volées | 25 coups | Aperçu 0,65 s, puis 75 s | Raquette étroite, balle rapide |
+
+Snake démarre plus vite en Normal et Expert, puis accélère avec les fruits. Les limites de coups et de volées sont affichées pendant la partie. Au billard, le dernier coup est résolu avant de décider la défaite : une 9 légale sur ce coup gagne toujours. Une partie Memory ou billard perdue ne crée pas un record de réussite. Les records de cette version utilisent une nouvelle clé locale. Les restrictions solo ne s’appliquent pas aux parties à deux.
+
+Tests supplémentaires : interception des tirs avec rebond, offensive hockey devant un but libre, retour de ping-pong vers la zone libre, échéance des volées, budget de billard avec victoire sur le dernier coup, chrono Memory et pause, largeur réelle de la raquette de casse-briques.
